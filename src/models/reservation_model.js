@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const reservationSchema = new mongoose.Schema({
-    catwayNumber: Int32Array,
+    catwayNumber: Number.parseInt,
     clientName: String,
     boatName: String,
     startDate: Date,
