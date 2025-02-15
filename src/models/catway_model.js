@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const catwaySchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    status: String,
+    catwayNumber: Int32Array,
+    catwayType: String,
+    catwayState: String,
 });
 
 const Catway = mongoose.model('Catway', catwaySchema);
