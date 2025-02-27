@@ -1,65 +1,91 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
+const User = require("./models/utilisateur_model")
+const bcrypt = require('bcryptjs');
 
-/**
- * @route GET /users/
- * @group Users - Operations about users
- * @returns {string} 200 - Créer un utilisateur
- * @description Cette route permet de créer un utilisateur.
- */
 router.get('/users/', async (req, res) => {
+    User.find().then((item) => res.json(item))
+});
+
+router.get('/users/:email', async (req, res) => {
+    const email = req.params.email;
+    const user = await User.findOne({email: email})
     try {
-        const { username, password, email } = req.body;
-        const newUser = new User(username, password, email);
-        await newUser.save();
-        res.redirect('/login');
-    } catch (err) {
-        res.status(500).send("Erreur lors de l'inscription");
+        if (user) {
+            res.status(200).json(user);
+        } else {
+            res.status(404).json("Aucun utilisateur avec cette email");
+        }
+    } catch (e) {
+        console.log(e)
+        res.status(500).json("Erreur du serveur");
     }
 });
 
-/**
- * @route GET /users/:email
- * @group Users - Operations about users
- * @param {string} email.path.required - User email
- * @returns {string} 200 - Lister l'ensemble des utilisateurs
- * @description Cette route permet de lister l'ensemble des utilisateurs.
- */
-router.get('/users/:email', (req, res) => {
-    res.send(`Lister l'ensemble des utilisateurs`);
+router.post('/users/', async (req, res) => {
+    const { 
+        username, 
+        email, 
+        password
+    } = req.body
+
+    try {
+        const newUser = new User({
+            username: username,
+            email: email,
+            password: password
+        })
+
+        await newUser.save()
+        res.status(200).json("Nouvel utilisateur enregistrée")
+    } catch (e) {
+        console.error(e)
+        res.status(500).json("Erreur du serveur")
+    }
 });
 
-/**
- * @route POST /users/
- * @group Users - Operations about users
- * @returns {string} 200 - Récupérer les détails d'un utilisateur en particulier
- * @description Cette route permet de récupérer les détails d'un utilisateur en particulier.
- */
-router.post('/users/', (req, res) => {
-    res.send(`Récupérer les détails d'un utilisateur en particulier`);
+router.put('/users/:email', async (req, res) => {
+    const userEmail = req.params.email
+    const updatedData = req.body;
+
+    try {
+        const user = User.findOne({email: userEmail})
+
+        if (updatedData.password) {
+            updatedData.password = await bcrypt.hash(updatedData.password, 10);
+        }
+        const updatedUser = await User.findOneAndUpdate(
+            {email: userEmail},
+            updatedData,
+            { new: true, runValidators: true }
+        );
+
+        if (updatedUser) {
+            res.status(200).json(updatedUser);
+        } else {
+            res.status(404).json("Aucune reservation à ce numéro")
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).json("Erreur du serveur")
+    }
 });
 
-/**
- * @route PUT /users/:email
- * @group Users - Operations about users
- * @param {string} email.path.required - User email
- * @returns {string} 200 - Modifier les détails d'un utilisateur
- * @description Cette route permet de modifier les détails d'un utilisateur.
- */
-router.put('/users/:email', (req, res) => {
-    res.send(`Modifier les détails d'un utilisateur`);
-});
-
-/**
- * @route DELETE /users/:email
- * @group Users - Operations about users
- * @param {string} email.path.required - User email
- * @returns {string} 200 - Supprimer un utilisateur
- * @description Cette route permet de supprimer un utilisateur.
- */
-router.delete('/users/:email', (req, res) => {
-    res.send(`Supprimer un utilisateur`);
+router.delete('/users/:email', async (req, res) => {
+    const userEmail = req.params.email;
+    try {
+        const userID = await User.findOne({ email: userEmail });
+        const result = await User.findByIdAndDelete(userID._id)
+        if (result) {
+            res.json("L'utilisateur " + userEmail + " a été supprimé")
+        } else {
+            res.status(404).json("Aucun utilisateur trouvé")
+        }
+    } catch (e) {
+        console.error(e)
+        res.json("Erreur de serveur")
+    }
 });
 
 router.post('/login', passport.authenticate('local', {

@@ -58,7 +58,7 @@ router.put('/catways/:id/reservations/:idReservation', async (req, res) => {
         const updatedReservation = await Reservation.findByIdAndUpdate(
             reservationId,
             updatedData,
-            { new: true, runValidators: true }
+            { new: true, runValidators: true } 
         );
 
         if (updatedReservation) {
