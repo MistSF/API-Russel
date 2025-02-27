@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
 
 /**
  * @route GET /users/
@@ -7,8 +8,15 @@ const router = express.Router();
  * @returns {string} 200 - Créer un utilisateur
  * @description Cette route permet de créer un utilisateur.
  */
-router.get('/users/', (req, res) => {
-    res.send('Créer un utilisateur');
+router.get('/users/', async (req, res) => {
+    try {
+        const { username, password, email } = req.body;
+        const newUser = new User(username, password, email);
+        await newUser.save();
+        res.redirect('/login');
+    } catch (err) {
+        res.status(500).send("Erreur lors de l'inscription");
+    }
 });
 
 /**
@@ -53,5 +61,27 @@ router.put('/users/:email', (req, res) => {
 router.delete('/users/:email', (req, res) => {
     res.send(`Supprimer un utilisateur`);
 });
+
+router.post('/login', passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login',
+    failureFlash: true
+}));
+
+// Route pour la déconnexion
+router.get('/logout', (req, res) => {
+    req.logout((err) => {
+        if (err) {
+            return next(err);
+        }
+        req.session.destroy((err) => {
+            if (err) {
+                return next(err);  
+            }
+            res.redirect('/login');
+        });
+    });
+});
+  
 
 module.exports = router;

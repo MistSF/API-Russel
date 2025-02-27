@@ -1,0 +1,7 @@
+{
+    "db" : {
+        "username" : "Root",
+        "password" : "Password",
+        "database" : "local"
+    }
+}

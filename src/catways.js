@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Catway = require("./models/catway_model")
 
 /**
  * @route GET /catways
@@ -8,8 +9,27 @@ const router = express.Router();
  * @returns {string} 200 - Créer un catway
  * @description Cette route permet de créer un catway.
  */
-router.get('/catways', (req, res) => {
-    res.send('Créer un catway');
+router.get('/catways', async (req, res) => {
+    let newCatwayNumber = 0
+    const { catwayNumber, catwayType, catwayState } = req.query
+
+    if (catwayNumber) {
+        newCatwayNumber = catwayNumber
+    } else {
+        const item = await Catway.findOne().sort({catwayNumber: -1})
+        if (item) {
+            newCatwayNumber = item.catwayNumber + 1
+        }
+    }
+
+    const newCatway = new Catway({
+        catwayNumber: newCatwayNumber,
+        catwayType: (catwayType) ? catwayType : "Short",
+        catwayState: (catwayState) ? catwayState : "bon état"
+    })
+
+    // await newCatway.save()
+    res.json(newCatway)
 });
 
 /**
