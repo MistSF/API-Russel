@@ -2,14 +2,26 @@ const express = require('express');
 const router = express.Router();
 const Catway = require("./models/catway_model")
 
-/**
- * @route GET /catways
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @returns {string} 200 - Créer un catway
- * @description Cette route permet de créer un catway.
- */
-router.get('/catways', async (req, res) => {
+router.get('/catways', (req, res) => {
+    Catway.find().then((item) => res.json(item))
+});
+
+router.get('/catways/:id', async (req, res) => {
+    const catwayId = req.params.id
+    const catway = await Catway.findOne({ catwayNumber: catwayId})
+    try {
+        if (catway) {
+            res.status(200).json(catway);
+        } else {
+            res.status(404).json("Aucun catway à ce numéro");
+        }
+    } catch (e) {
+        console.log(e)
+        res.status(500).json("Erreur du serveur");
+    }
+});
+
+router.post('/catways', async (req, res) => {
     let newCatwayNumber = 0
     const { catwayNumber, catwayType, catwayState } = req.query
 
@@ -28,54 +40,47 @@ router.get('/catways', async (req, res) => {
         catwayState: (catwayState) ? catwayState : "bon état"
     })
 
-    // await newCatway.save()
+    await newCatway.save()
     res.json(newCatway)
 });
 
-/**
- * @route GET /catway/:id
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @param {string} idReservation.path.required - Reservation ID
- * @returns {string} 200 - Lister l'ensemble des catway
- * @description Cette route permet de lister l'ensemble des catway.
- */
-router.get('/catway/:id', (req, res) => {
-    res.send(`Lister l'ensemble des catways`);
+router.put('/catways/:id', async (req, res) => {
+    const catwayId = req.params.id
+    const updatedData = req.body;
+
+    console.log(updatedData)
+
+    try {
+        const updatedCatway = await Catway.findOneAndUpdate(
+            {catwayNumber: catwayId},
+            updatedData,
+            { new: true, runValidators: true}
+        );
+
+        if (updatedCatway) {
+            res.status(200).json(updatedCatway);
+        } else {
+            res.status(404).json("Aucun catway à ce numéro")
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).json("Erreur du serveur")
+    }
 });
 
-/**
- * @route POST /catways
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @returns {string} 200 - Récupérer les détails d'un catway en particulier
- * @description Cette route permet de récupérer les détails d'un catway en particulier.
- */
-router.post('/catways', (req, res) => {
-    res.send(`Modifier la description de l'état d'un catway (le numéro et le type ne doivent pas être modifiables)`);
-});
-
-/**
- * @route PUT /catways/:id
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @returns {string} 200 - Modifier un catway
- * @description Cette route permet de modifier un catway.
- */
-router.put('/catways/:id', (req, res) => {
-    res.send(`Modifier un catway.`);
-});
-
-/**
- * @route DELETE /catways/:id
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @param {string} idReservation.path.required - Reservation ID
- * @returns {string} 200 - Supprimer un catway.
- * @description Cette route permet de supprimer un catway.
- */
-router.delete('/catways/:id', (req, res) => {
-    res.send(`Supprimer une réservation`);
+router.delete('/catways/:id', async (req, res) => {
+    const catwayId = req.params.id;
+    try {
+        const result = await Catway.deleteOne({catwayNumber: catwayId})
+        if (result.deletedCount > 0) {
+            res.json("Le catway " + catwayId + " a été supprimé")
+        } else {
+            res.status(404).json("Aucun catway à ce numéro")
+        }
+    } catch (e) {
+        console.error(e)
+        res.json("Erreur de serveur")
+    }
 });
 
 module.exports = router;

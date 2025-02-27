@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 
 const app = express();
+app.use(express.json())
 
 // Lire le fichier de configuration JSON
 const config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
