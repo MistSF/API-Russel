@@ -8,7 +8,7 @@ router.get('/catways', (req, res) => {
 
 router.get('/catways/:id', async (req, res) => {
     const catwayId = req.params.id
-    const catway = await Catway.findOne({ catwayNumber: catwayId})
+    const catway = await Catway.findById(catwayId)
     try {
         if (catway) {
             res.status(200).json(catway);
@@ -46,15 +46,13 @@ router.post('/catways', async (req, res) => {
 
 router.put('/catways/:id', async (req, res) => {
     const catwayId = req.params.id
-    const updatedData = req.body;
-
-    console.log(updatedData)
+    const { catwayState } = req.body;
 
     try {
-        const updatedCatway = await Catway.findOneAndUpdate(
-            {catwayNumber: catwayId},
-            updatedData,
-            { new: true, runValidators: true}
+        const updatedCatway = await Catway.findByIdAndUpdate(
+            catwayId,
+            { catwayState: catwayState },
+            { new: true, runValidators: true }
         );
 
         if (updatedCatway) {
@@ -71,8 +69,9 @@ router.put('/catways/:id', async (req, res) => {
 router.delete('/catways/:id', async (req, res) => {
     const catwayId = req.params.id;
     try {
-        const result = await Catway.deleteOne({catwayNumber: catwayId})
-        if (result.deletedCount > 0) {
+        const result = await Catway.findByIdAndDelete(catwayId)
+        console.log(result)
+        if (result) {
             res.json("Le catway " + catwayId + " a été supprimé")
         } else {
             res.status(404).json("Aucun catway à ce numéro")

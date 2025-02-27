@@ -1,61 +1,90 @@
 const express = require('express');
 const router = express.Router();
+const Reservation = require("./models/reservation_model")
 
-/**
- * @route GET /catways/:id/reservations
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @returns {string} 200 - Créer une réservation
- * @description Cette route permet de créer une réservation.
- */
 router.get('/catways/:id/reservations', (req, res) => {
-    res.send('Créer une réservation');
+    Reservation.find().then((item) => res.json(item))
 });
 
-/**
- * @route GET /catway/:id/reservations/:idReservation
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @param {string} idReservation.path.required - Reservation ID
- * @returns {string} 200 - Lister l'ensemble des réservations
- * @description Cette route permet de lister l'ensemble des réservations.
- */
-router.get('/catway/:id/reservations/:idReservation', (req, res) => {
-    res.send(`Lister l'ensemble des réservations`);
+router.get('/catways/:id/reservations/:idReservation', async (req, res) => {
+    const reservationId = req.params.idReservation;
+    const reservation = await Reservation.findById(reservationId)
+    try {
+        if (reservation) {
+            res.status(200).json(reservation);
+        } else {
+            res.status(404).json("Aucune reservation à ce numéro");
+        }
+    } catch (e) {
+        console.log(e)
+        res.status(500).json("Erreur du serveur");
+    }
 });
 
-/**
- * @route POST /catways/:id/reservations
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @returns {string} 200 - Récupérer les détails d'une réservation en particulier
- * @description Cette route permet de récupérer les détails d'une réservation en particulier.
- */
-router.post('/catways/:id/reservations', (req, res) => {
-    res.send(`Récupérer les détails d'une réservation en particulier`);
+router.post('/catways/:id/reservations', async (req, res) => {
+    const { 
+        catwayNumber, 
+        clientName, 
+        boatName, 
+        startDate, 
+        endDate 
+    } = req.body
+
+    try {
+        const currentStartDate = startDate ? new Date(startDate) : new Date()
+        const currentEndDate = endDate ? new Date(endDate) : new Date() + 1
+
+        const newReservation = new Reservation({
+            catwayNumber: catwayNumber,
+            clientName: clientName,
+            boatName: boatName,
+            startDate: currentStartDate,
+            endDate: currentEndDate
+        })
+
+        await newReservation.save()
+        res.status(200).json("Nouvelle reservation enregistrée")
+    } catch (e) {
+        console.error(e)
+        res.status(500).json("Erreur du serveur")
+    }
 });
 
-/**
- * @route PUT /catways/:id/reservations
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @returns {string} 200 - Modifier une réservation
- * @description Cette route permet de modifier une réservation.
- */
-router.put('/catways/:id/reservations', (req, res) => {
-    res.send(`Modifier une réservation`);
+router.put('/catways/:id/reservations/:idReservation', async (req, res) => {
+    const reservationId = req.params.idReservation
+    const updatedData = req.body;
+
+    try {
+        const updatedReservation = await Reservation.findByIdAndUpdate(
+            reservationId,
+            updatedData,
+            { new: true, runValidators: true }
+        );
+
+        if (updatedReservation) {
+            res.status(200).json(updatedReservation);
+        } else {
+            res.status(404).json("Aucune reservation à ce numéro")
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).json("Erreur du serveur")
+    }
 });
 
-/**
- * @route DELETE /catways/:id/reservations/:idReservation
- * @group Reservations - Operations about reservations
- * @param {string} id.path.required - Catway ID
- * @param {string} idReservation.path.required - Reservation ID
- * @returns {string} 200 - Supprimer une réservation
- * @description Cette route permet de supprimer une réservation.
- */
-router.delete('/catways/:id/reservations/:idReservation', (req, res) => {
-    res.send(`Supprimer une réservation`);
+router.delete('/catways/:id/reservations/:idReservation', async (req, res) => {
+    const reservationId = req.params.idReservation;
+    try {
+        const result = await Reservation.findByIdAndDelete(reservationId)
+        if (result) {
+            res.json("La réservation " + reservationId + " a été supprimé")
+        } else {
+            res.status(404).json("Aucun catway à ce numéro")
+        }
+    } catch (e) {
+        console.error(e)
+        res.json("Erreur de serveur")
+    }
 });
 
 module.exports = router;
