@@ -34,7 +34,7 @@ app.use(express.static(path.join(__dirname, 'src/html')));
  * @constant
  * @type {Object}
  */
-const config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
 
 /**
  * Connect to MongoDB.
