@@ -7,7 +7,6 @@
     "dev": "nodemon main.js",
     "lint": "eslint.",
     "fix": "eslint. --fix",
-    "build": "echo No build neeeded",
     "precommit": "lint-staged",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
