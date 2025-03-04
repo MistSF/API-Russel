@@ -12,6 +12,11 @@ const User = require('./src/models/utilisateur_model');
 const path = require("path");
 const cors = require("cors");
 
+const dbUsername = process.env.DB_USERNAME;
+const dbPassword = process.env.DB_PASSWORD;
+const dbDatabase = process.env.DB_DATABASE;
+
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -25,23 +30,16 @@ app.use(session({
         maxAge: 60000
     }
 }));
+  
 app.use(flash());
 app.use(express.static(path.join(__dirname, 'src/html')));
-
-/**
- * Read JSON configuration file.
- * @private
- * @constant
- * @type {Object}
- */
-const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
 
 /**
  * Connect to MongoDB.
  * @private
  * @function
  */
-mongoose.connect(`mongodb+srv://${config.db.username}:${config.db.password}@cluster0.hrotg.mongodb.net/${config.db.database}?authSource=admin`).then(() => {
+mongoose.connect(`mongodb+srv://${dbUsername}:${dbPassword}@cluster.mongodb.net/${dbDatabase}?authSource=admin`).then(() => {
     console.log('Connected to MongoDB');
 }).catch((error) => {
     console.error('Error connecting to MongoDB:', error);
