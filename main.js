@@ -41,7 +41,7 @@ const config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
  * @private
  * @function
  */
-mongoose.connect(`mongodb://${config.db.username}:${config.db.password}@localhost:27017/${config.db.database}?authSource=admin`).then(() => {
+mongoose.connect(`mongodb+srv://${config.db.username}:${config.db.password}@cluster0.hrotg.mongodb.net/${config.db.database}?authSource=admin`).then(() => {
     console.log('Connected to MongoDB');
 }).catch((error) => {
     console.error('Error connecting to MongoDB:', error);
