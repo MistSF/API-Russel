@@ -1,8 +1,13 @@
 {
   "name": "api-russel",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
+    "start": "node main.js",
+    "dev": "nodemon main.js",
+    "lint": "eslint.",
+    "fix": "eslint. --fix",
+    "precommit": "lint-staged",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
