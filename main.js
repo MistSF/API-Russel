@@ -1,7 +1,6 @@
 const fs = require("fs");
 const express = require('express');
 const session = require('express-session');
-const MongoStore = require("connect-mongo")
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
@@ -16,7 +15,7 @@ const cors = require("cors");
 const dbUsername = process.env.DB_USERNAME;
 const dbPassword = process.env.DB_PASSWORD;
 const dbDatabase = process.env.DB_DATABASE;
-const jwtSecret = process.env.JWT_SECRET || 'defaultSecret';
+
 
 const app = express();
 app.use(express.json());
@@ -26,16 +25,8 @@ app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: true,
-    store: MongoStore.create({
-        mongoUrl: `mongodb+srv://${dbUsername}:${dbPassword}@cluster.mongodb.net/${dbDatabase}?authSource=admin`,
-        mongoOptions: {
-            useNewUrlParser: true,
-            connectTimeoutMS: 20000,
-            socketTimeoutMS: 45000
-        }
-    }),
     cookie: {
-        secure: true, // Set to true in production
+        secure: false,
         maxAge: 60000
     }
 }));
@@ -48,15 +39,11 @@ app.use(express.static(path.join(__dirname, 'src/html')));
  * @private
  * @function
  */
-mongoose.connect(`mongodb+srv://${dbUsername}:${dbPassword}@cluster.mongodb.net/${dbDatabase}?authSource=admin`, {
-    connectTimeoutMS: 20000,
-    socketTimeoutMS: 45000
-}).then(() => {
+mongoose.connect(`mongodb+srv://${dbUsername}:${dbPassword}@cluster0.hrotg.mongodb.net/${dbDatabase}?authSource=admin&retryWrites=true&w=majority&appName=Cluster0`).then(() => {
     console.log('Connected to MongoDB');
 }).catch((error) => {
-    console.error('Error connecting to MongoDB:', error.message);
+    console.error('Error connecting to MongoDB:', error);
 });
-
 
 /**
  * Middleware for verifying JWT token.
@@ -71,7 +58,7 @@ function verifyToken(req, res, next) {
     const token = req.headers['authorization']?.split(' ')[1]; // Split 'Bearer <token>'
     if (!token) return res.status(403).send("A token is required for authentication");
     try {
-        const decoded = jwt.verify(token, jwtSecret);
+        const decoded = jwt.verify(token, "jwtSecret");
         req.user = decoded;
     } catch (err) {
         return res.status(401).send("Invalid Token");
@@ -91,7 +78,7 @@ app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     if (user && await bcrypt.compare(password, user.password)) {
-        const token = jwt.sign({ username: user.username }, jwtSecret, { expiresIn: '1h' });
+        const token = jwt.sign({ username: user.username }, 'jwtSecret', { expiresIn: '1h' });
         res.json({ token });
     } else {
         res.status(400).send("Invalid username or password");
