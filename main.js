@@ -1,6 +1,7 @@
 const fs = require("fs");
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require("connect-mongo")
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
@@ -25,6 +26,20 @@ app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: true,
+    store: MongoStore.create({
+        url: `mongodb+srv://${dbUsername}:${dbPassword}@cluster.mongodb.net/${dbDatabase}?authSource=admin`,
+        autoReconnect: true,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+        useFindAndModify: false,
+        connectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        retryWrites: true,
+        w: "majority",
+        wTimeoutMS: 20000,
+        connectTimeoutMS: 20000
+    }),
     cookie: {
         secure: false,
         maxAge: 60000
