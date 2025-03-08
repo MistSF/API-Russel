@@ -48,14 +48,15 @@ app.use(express.static(path.join(__dirname, 'src/html')));
  * @private
  * @function
  */
-mongoose.connect(`mongodb+srv://${dbUsername}:${dbPassword}@cluster.mongodb.net/${dbDatabase}?authSource=admin`)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((error) => {
-        console.error('Error connecting to MongoDB:', error.message);
-        if (error.name === 'MongoNetworkError') {
-            console.error('Check your network connection or MongoDB Atlas whitelist settings.');
-        }
-    });
+mongoose.connect(`mongodb+srv://${dbUsername}:${dbPassword}@cluster.mongodb.net/${dbDatabase}?authSource=admin`, {
+    connectTimeoutMS: 20000,
+    socketTimeoutMS: 45000
+}).then(() => {
+    console.log('Connected to MongoDB');
+}).catch((error) => {
+    console.error('Error connecting to MongoDB:', error.message);
+});
+
 
 /**
  * Middleware for verifying JWT token.
